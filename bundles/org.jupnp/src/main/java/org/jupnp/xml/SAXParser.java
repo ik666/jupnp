@@ -36,7 +36,6 @@ import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.AttributesImpl;
 import org.xml.sax.helpers.DefaultHandler;
-import org.xml.sax.helpers.XMLReaderFactory;
 
 /**
  * @author Christian Bauer
@@ -46,6 +45,21 @@ public class SAXParser {
     public static final URI XML_SCHEMA_NAMESPACE = URI.create("http://www.w3.org/2001/xml.xsd");
     public static final URL XML_SCHEMA_RESOURCE = Thread.currentThread().getContextClassLoader()
             .getResource("org/jupnp/schemas/xml.xsd");
+
+    // Cache expensive factory instances for better performance
+    private static final SAXParserFactory SAX_PARSER_FACTORY;
+    private static final SchemaFactory SCHEMA_FACTORY;
+
+    static {
+        SAX_PARSER_FACTORY = SAXParserFactory.newInstance();
+        SAX_PARSER_FACTORY.setNamespaceAware(true);
+        SCHEMA_FACTORY = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+        SCHEMA_FACTORY.setResourceResolver(new CatalogResourceResolver(new HashMap<>() {
+            {
+                put(XML_SCHEMA_NAMESPACE, XML_SCHEMA_RESOURCE);
+            }
+        }));
+    }
 
     private final XMLReader xr;
 
@@ -64,36 +78,52 @@ public class SAXParser {
         xr.setContentHandler(handler);
     }
 
+    /**
+     * Creates an XMLReader instance. If schema sources are available, creates a validating reader.
+     * Uses cached factory instances for better performance.
+     *
+     * @return A configured XMLReader instance
+     * @throws RuntimeException if XMLReader creation fails
+     */
     protected XMLReader create() {
         try {
             final XMLReader xmlReader;
-            if (getSchemaSources() != null) {
-                // Jump through all the hoops and create a validating reader
-                final SAXParserFactory factory = SAXParserFactory.newInstance();
-                factory.setNamespaceAware(true);
-                factory.setSchema(createSchema(getSchemaSources()));
-                xmlReader = factory.newSAXParser().getXMLReader();
-            } else {
-                xmlReader = XMLReaderFactory.createXMLReader();
+            Source[] schemaSources = getSchemaSources();
+            // Use cached factory for better performance
+            synchronized (SAX_PARSER_FACTORY) {
+                if (schemaSources != null) {
+                    // Jump through all the hoops and create a validating reader
+                    SAX_PARSER_FACTORY.setSchema(createSchema(schemaSources));
+                } else {
+                    // Reset schema to null for non-validating parser
+                    SAX_PARSER_FACTORY.setSchema(null);
+                }
+                xmlReader = SAX_PARSER_FACTORY.newSAXParser().getXMLReader();
             }
             xmlReader.setErrorHandler(getErrorHandler());
             return xmlReader;
+        } catch (SAXException e) {
+            throw new RuntimeException("Failed to create XMLReader", e);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed to create XMLReader", e);
         }
     }
 
+    /**
+     * Creates a Schema from the given sources. Uses a cached SchemaFactory for better performance.
+     *
+     * @param schemaSources The schema sources to compile
+     * @return A compiled Schema instance
+     * @throws RuntimeException if schema creation fails
+     */
     protected Schema createSchema(Source[] schemaSources) {
         try {
-            SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-            schemaFactory.setResourceResolver(new CatalogResourceResolver(new HashMap<>() {
-                {
-                    put(XML_SCHEMA_NAMESPACE, XML_SCHEMA_RESOURCE);
-                }
-            }));
-            return schemaFactory.newSchema(schemaSources);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            // Use cached schema factory for better performance
+            synchronized (SCHEMA_FACTORY) {
+                return SCHEMA_FACTORY.newSchema(schemaSources);
+            }
+        } catch (SAXException e) {
+            throw new RuntimeException("Failed to create schema", e);
         }
     }
 
