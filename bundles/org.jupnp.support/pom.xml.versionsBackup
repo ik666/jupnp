@@ -5,14 +5,15 @@
 
   <parent>
     <groupId>org.jupnp.pom</groupId>
-    <artifactId>itests</artifactId>
-    <version>3.0.5.ik</version>
+    <artifactId>bundles</artifactId>
+    <version>3.0.5-SNAPSHOT</version>
   </parent>
 
-  <groupId>org.jupnp.itests</groupId>
-  <artifactId>org.jupnp.osgi.tests</artifactId>
+  <groupId>org.jupnp</groupId>
+  <artifactId>org.jupnp.support</artifactId>
 
-  <name>jUPnP Integration Tests OSGi</name>
+  <name>jUPnP Extra Support Library</name>
+  <description>It includes support for UPnP-AV, DLNA, Microsoft Devices such as XBox 360</description>
 
   <properties>
     <basedirRoot>../..</basedirRoot>
@@ -23,16 +24,13 @@
       <groupId>org.jupnp</groupId>
       <artifactId>org.jupnp</artifactId>
       <version>${project.version}</version>
+      <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.jupnp</groupId>
-      <artifactId>org.jupnp.osgi</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.jupnp.itests</groupId>
-      <artifactId>org.jupnp.device.simple</artifactId>
-      <version>${project.version}</version>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${slf4j.version}</version>
+      <scope>compile</scope>
     </dependency>
   </dependencies>
 

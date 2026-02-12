@@ -6,13 +6,14 @@
   <parent>
     <groupId>org.jupnp.pom</groupId>
     <artifactId>itests</artifactId>
-    <version>3.0.5.ik</version>
+    <version>3.0.5-SNAPSHOT</version>
   </parent>
 
   <groupId>org.jupnp.itests</groupId>
-  <artifactId>org.jupnp.osgi.tests</artifactId>
+  <artifactId>org.jupnp.device.simple</artifactId>
 
-  <name>jUPnP Integration Tests OSGi</name>
+  <name>jUPnP Integration Tests Simple Device</name>
+  <description>A test device that exposes all the capabilities of OSGi UPnP</description>
 
   <properties>
     <basedirRoot>../..</basedirRoot>
@@ -20,18 +21,8 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.jupnp</groupId>
-      <artifactId>org.jupnp</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.jupnp</groupId>
-      <artifactId>org.jupnp.osgi</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.jupnp.itests</groupId>
-      <artifactId>org.jupnp.device.simple</artifactId>
+      <artifactId>org.jupnp.common</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>

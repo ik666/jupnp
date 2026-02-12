@@ -6,20 +6,17 @@
   <parent>
     <groupId>org.jupnp</groupId>
     <artifactId>jupnp</artifactId>
-    <version>3.0.5.ik</version>
+    <version>3.0.5-SNAPSHOT</version>
   </parent>
 
   <groupId>org.jupnp.pom</groupId>
-  <artifactId>bundles</artifactId>
+  <artifactId>tools</artifactId>
   <packaging>pom</packaging>
 
-  <name>jUPnP Bundles</name>
+  <name>jUPnP Tools</name>
 
   <modules>
-    <module>org.jupnp</module>
-    <module>org.jupnp.android</module>
-    <module>org.jupnp.osgi</module>
-    <module>org.jupnp.support</module>
+    <module>org.jupnp.tool</module>
   </modules>
 
   <properties>
@@ -31,6 +28,7 @@
       <groupId>org.jupnp.bom</groupId>
       <artifactId>org.jupnp.bom.compile</artifactId>
       <type>pom</type>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.jupnp.bom</groupId>
@@ -69,39 +67,6 @@
     </pluginManagement>
     <plugins>
       <plugin>
-        <groupId>biz.aQute.bnd</groupId>
-        <artifactId>bnd-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <goals>
-              <goal>bnd-process</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <configuration>
-          <archive>
-            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
-          </archive>
-          <skipIfEmpty>true</skipIfEmpty>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>attach-javadocs</id>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
         <executions>
@@ -110,6 +75,7 @@
             <goals>
               <goal>jar-no-fork</goal>
             </goals>
+            <phase>verify</phase>
           </execution>
         </executions>
       </plugin>
