@@ -22,6 +22,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URI;
 
+import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
@@ -82,9 +83,12 @@ public class DIDLParser extends SAXParser {
     public static final String UNKNOWN_TITLE = "Unknown Title";
 
     private static final TransformerFactory TRANSFORMER_FACTORY = TransformerFactory.newInstance();
+
     private static final ThreadLocal<Transformer> TRANSFORMER_WITH_PROLOG = ThreadLocal.withInitial(() -> {
         try {
-            return TRANSFORMER_FACTORY.newTransformer();
+            synchronized (TRANSFORMER_FACTORY) {
+                return TRANSFORMER_FACTORY.newTransformer();
+            }
         } catch (Exception e) {
             throw new RuntimeException("Failed to create transformer", e);
         }
@@ -92,7 +96,10 @@ public class DIDLParser extends SAXParser {
 
     private static final ThreadLocal<Transformer> TRANSFORMER_WITHOUT_PROLOG = ThreadLocal.withInitial(() -> {
         try {
-            Transformer transformer = TRANSFORMER_FACTORY.newTransformer();
+            Transformer transformer;
+            synchronized (TRANSFORMER_FACTORY) {
+                transformer = TRANSFORMER_FACTORY.newTransformer();
+            }
             transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
             return transformer;
         } catch (Exception e) {
@@ -100,11 +107,15 @@ public class DIDLParser extends SAXParser {
         }
     });
 
-    private static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY = DocumentBuilderFactory.newInstance();
-
-    static {
-        DOCUMENT_BUILDER_FACTORY.setNamespaceAware(true);
-    }
+    private static final ThreadLocal<DocumentBuilder> DOCUMENT_BUILDER = ThreadLocal.withInitial(() -> {
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(true);
+            return factory.newDocumentBuilder();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create DocumentBuilder", e);
+        }
+    });
 
     /**
      * Uses the current thread's context classloader to read and unmarshall the given resource.
@@ -337,7 +348,7 @@ public class DIDLParser extends SAXParser {
     }
 
     protected Document buildDOM(DIDLContent content, boolean nestedItems) throws Exception {
-        Document d = DOCUMENT_BUILDER_FACTORY.newDocumentBuilder().newDocument();
+        Document d = DOCUMENT_BUILDER.get().newDocument();
         generateRoot(content, d, nestedItems);
         return d;
     }
