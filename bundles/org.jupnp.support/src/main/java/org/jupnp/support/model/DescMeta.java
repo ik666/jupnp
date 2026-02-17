@@ -44,12 +44,15 @@ import org.w3c.dom.Element;
  */
 public class DescMeta<M> {
 
-    private static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY;
-
-    static {
-        DOCUMENT_BUILDER_FACTORY = DocumentBuilderFactory.newInstance();
-        DOCUMENT_BUILDER_FACTORY.setNamespaceAware(true);
-    }
+    private static final ThreadLocal<DocumentBuilder> DOCUMENT_BUILDER = ThreadLocal.withInitial(() -> {
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(true);
+            return factory.newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+            throw new RuntimeException("Failed to create DocumentBuilder", e);
+        }
+    });
 
     protected String id;
     protected String type;
@@ -102,17 +105,12 @@ public class DescMeta<M> {
      * Creates a new metadata document with a desc-wrapper root element.
      *
      * @return A new DOM Document with the desc-wrapper root element
-     * @throws RuntimeException if document creation fails
      */
     public Document createMetadataDocument() {
-        try {
-            DocumentBuilder builder = DOCUMENT_BUILDER_FACTORY.newDocumentBuilder();
-            Document d = builder.newDocument();
-            Element rootElement = d.createElementNS(DIDLContent.DESC_WRAPPER_NAMESPACE_URI, "desc-wrapper");
-            d.appendChild(rootElement);
-            return d;
-        } catch (ParserConfigurationException e) {
-            throw new RuntimeException("Failed to create metadata document", e);
-        }
+        DocumentBuilder builder = DOCUMENT_BUILDER.get();
+        Document d = builder.newDocument();
+        Element rootElement = d.createElementNS(DIDLContent.DESC_WRAPPER_NAMESPACE_URI, "desc-wrapper");
+        d.appendChild(rootElement);
+        return d;
     }
 }
