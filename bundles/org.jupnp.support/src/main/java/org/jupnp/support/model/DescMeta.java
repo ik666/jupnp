@@ -17,10 +17,7 @@ package org.jupnp.support.model;
 
 import java.net.URI;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
+import org.jupnp.transport.impl.PooledXmlProcessor;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -44,15 +41,23 @@ import org.w3c.dom.Element;
  */
 public class DescMeta<M> {
 
-    private static final ThreadLocal<DocumentBuilder> DOCUMENT_BUILDER = ThreadLocal.withInitial(() -> {
-        try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setNamespaceAware(true);
-            return factory.newDocumentBuilder();
-        } catch (ParserConfigurationException e) {
-            throw new RuntimeException("Failed to create DocumentBuilder", e);
+    /**
+     * Pooled XML processor for efficient DocumentBuilder reuse.
+     */
+    private static final DocumentBuilderPool XML_PROCESSOR = new DocumentBuilderPool();
+
+    /**
+     * Provides pooled DocumentBuilder instances.
+     */
+    private static class DocumentBuilderPool extends PooledXmlProcessor {
+        public Document createNewDocument() {
+            try {
+                return newDocument();
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to create document", e);
+            }
         }
-    });
+    }
 
     protected String id;
     protected String type;
@@ -107,8 +112,7 @@ public class DescMeta<M> {
      * @return A new DOM Document with the desc-wrapper root element
      */
     public Document createMetadataDocument() {
-        DocumentBuilder builder = DOCUMENT_BUILDER.get();
-        Document d = builder.newDocument();
+        Document d = XML_PROCESSOR.createNewDocument();
         Element rootElement = d.createElementNS(DIDLContent.DESC_WRAPPER_NAMESPACE_URI, "desc-wrapper");
         d.appendChild(rootElement);
         return d;
