@@ -22,8 +22,6 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URI;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
@@ -44,6 +42,7 @@ import org.jupnp.support.model.StorageMedium;
 import org.jupnp.support.model.WriteStatus;
 import org.jupnp.support.model.container.Container;
 import org.jupnp.support.model.item.Item;
+import org.jupnp.transport.impl.PooledXmlProcessor;
 import org.jupnp.util.io.IO;
 import org.jupnp.xml.SAXParser;
 import org.slf4j.Logger;
@@ -107,15 +106,23 @@ public class DIDLParser extends SAXParser {
         }
     });
 
-    private static final ThreadLocal<DocumentBuilder> DOCUMENT_BUILDER = ThreadLocal.withInitial(() -> {
-        try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setNamespaceAware(true);
-            return factory.newDocumentBuilder();
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create DocumentBuilder", e);
+    /**
+     * Pooled XML processor for efficient DocumentBuilder reuse.
+     */
+    private static final DocumentBuilderPool XML_PROCESSOR = new DocumentBuilderPool();
+
+    /**
+     * Provide pooled DocumentBuilder instances.
+     */
+    private static class DocumentBuilderPool extends PooledXmlProcessor {
+        public Document createNewDocument() {
+            try {
+                return newDocument();
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to create document", e);
+            }
         }
-    });
+    }
 
     /**
      * Uses the current thread's context classloader to read and unmarshall the given resource.
@@ -348,7 +355,7 @@ public class DIDLParser extends SAXParser {
     }
 
     protected Document buildDOM(DIDLContent content, boolean nestedItems) throws Exception {
-        Document d = DOCUMENT_BUILDER.get().newDocument();
+        Document d = XML_PROCESSOR.createNewDocument();
         generateRoot(content, d, nestedItems);
         return d;
     }
