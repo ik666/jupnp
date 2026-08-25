@@ -36,7 +36,7 @@ public class DateTimeDatatype extends AbstractDatatype<Calendar> {
 
     @Override
     public Calendar valueOf(String s) throws InvalidValueException {
-        if (s.isEmpty()) {
+        if (s == null || s.isEmpty()) {
             return null;
         }
 

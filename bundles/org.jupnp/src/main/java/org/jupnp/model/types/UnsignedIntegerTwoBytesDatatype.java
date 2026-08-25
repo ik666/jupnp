@@ -22,7 +22,7 @@ public class UnsignedIntegerTwoBytesDatatype extends AbstractDatatype<UnsignedIn
 
     @Override
     public UnsignedIntegerTwoBytes valueOf(String s) throws InvalidValueException {
-        if (s.isEmpty()) {
+        if (s == null || s.isEmpty()) {
             return null;
         }
         try {

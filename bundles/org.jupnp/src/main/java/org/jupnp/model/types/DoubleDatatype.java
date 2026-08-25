@@ -30,7 +30,7 @@ public class DoubleDatatype extends AbstractDatatype<Double> {
 
     @Override
     public Double valueOf(String s) throws InvalidValueException {
-        if (s.isEmpty()) {
+        if (s == null || s.isEmpty()) {
             return null;
         }
         try {

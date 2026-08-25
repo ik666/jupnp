@@ -32,7 +32,7 @@ public class Base64Datatype extends AbstractDatatype<byte[]> {
 
     @Override
     public byte[] valueOf(String s) throws InvalidValueException {
-        if (s.isEmpty()) {
+        if (s == null || s.isEmpty()) {
             return null;
         }
         try {

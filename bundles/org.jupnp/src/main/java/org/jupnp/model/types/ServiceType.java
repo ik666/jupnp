@@ -43,6 +43,11 @@ public class ServiceType {
     private static final Pattern PATTERN_WHITESPACE = Pattern.compile("\\s");
     private static final Pattern PATTERN_NAMESPACE = Pattern.compile(Constants.REGEX_NAMESPACE);
     private static final Pattern PATTERN_TYPE = Pattern.compile(Constants.REGEX_TYPE);
+    // Workarounds for devices that violate the spec; compiled once instead of on every parse.
+    private static final Pattern PATTERN_COLON_TOKEN = Pattern
+            .compile("urn:(" + Constants.REGEX_NAMESPACE + "):service:(.+?):([0-9]+).*");
+    private static final Pattern PATTERN_SERVICEID_TOKEN = Pattern
+            .compile("urn:(" + Constants.REGEX_NAMESPACE + "):serviceId:(.+?):([0-9]+).*");
 
     private String namespace;
     private String type;
@@ -92,11 +97,7 @@ public class ServiceType {
         s = PATTERN_WHITESPACE.matcher(s).replaceAll("");
 
         // First try UDAServiceType parse
-        try {
-            serviceType = UDAServiceType.valueOf(s);
-        } catch (Exception e) {
-            // Ignore
-        }
+        serviceType = UDAServiceType.tryValueOf(s);
 
         if (serviceType != null) {
             return serviceType;
@@ -116,7 +117,7 @@ public class ServiceType {
 
             // TODO: UPNP VIOLATION: EyeTV Netstream uses colons in service type token
             // urn:schemas-microsoft-com:service:pbda:tuner:1
-            matcher = Pattern.compile("urn:(" + Constants.REGEX_NAMESPACE + "):service:(.+?):([0-9]+).*").matcher(s);
+            matcher = PATTERN_COLON_TOKEN.matcher(s);
             if (matcher.matches() && matcher.groupCount() >= 3) {
                 String cleanToken = matcher.group(2).replaceAll("[^a-zA-Z_0-9\\-]", "-");
                 SpecificationViolationReporter.report("Replacing invalid service type token '{}' with: {}",
@@ -127,7 +128,7 @@ public class ServiceType {
             // TODO: UPNP VIOLATION: Ceyton InfiniTV uses colons in service type token and 'serviceId' instead of
             // 'service'
             // urn:schemas-opencable-com:serviceId:dri2:debug:1
-            matcher = Pattern.compile("urn:(" + Constants.REGEX_NAMESPACE + "):serviceId:(.+?):([0-9]+).*").matcher(s);
+            matcher = PATTERN_SERVICEID_TOKEN.matcher(s);
             if (matcher.matches() && matcher.groupCount() >= 3) {
                 String cleanToken = matcher.group(2).replaceAll("[^a-zA-Z_0-9\\-]", "-");
                 SpecificationViolationReporter.report("Replacing invalid service type token '{}' with: {}",

@@ -42,6 +42,24 @@ public class UDAServiceType extends ServiceType {
         super(DEFAULT_NAMESPACE, type, version);
     }
 
+    /**
+     * The same parse, but for callers that use it as a test: {@link ServiceType#valueOf} tries the UDA
+     * form first and ignores the failure, so throwing there was pure control flow.
+     *
+     * @return the parsed type, or <code>null</code> if the string is not a UDA service type
+     */
+    static UDAServiceType tryValueOf(String s) {
+        Matcher matcher = UDAServiceType.PATTERN.matcher(s);
+        try {
+            if (matcher.matches()) {
+                return new UDAServiceType(matcher.group(1), Integer.parseInt(matcher.group(2)));
+            }
+        } catch (RuntimeException e) {
+            return null;
+        }
+        return null;
+    }
+
     public static UDAServiceType valueOf(String s) throws InvalidValueException {
         Matcher matcher = UDAServiceType.PATTERN.matcher(s);
 

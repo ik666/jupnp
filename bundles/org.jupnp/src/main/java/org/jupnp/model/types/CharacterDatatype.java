@@ -30,7 +30,7 @@ public class CharacterDatatype extends AbstractDatatype<Character> {
 
     @Override
     public Character valueOf(String s) throws InvalidValueException {
-        if (s.isEmpty()) {
+        if (s == null || s.isEmpty()) {
             return null;
         }
         return s.charAt(0);

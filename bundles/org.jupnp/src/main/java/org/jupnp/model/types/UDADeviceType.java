@@ -42,6 +42,25 @@ public class UDADeviceType extends DeviceType {
         super(DEFAULT_NAMESPACE, type, version);
     }
 
+    /**
+     * The same parse, but for callers that use it as a test: {@link DeviceType#valueOf} tries the UDA
+     * form first and ignores the failure, so throwing there was pure control flow - and the most
+     * frequent deoptimization source in the whole stack.
+     *
+     * @return the parsed type, or <code>null</code> if the string is not a UDA device type
+     */
+    static UDADeviceType tryValueOf(String s) {
+        Matcher matcher = PATTERN.matcher(s);
+        try {
+            if (matcher.matches()) {
+                return new UDADeviceType(matcher.group(1), Integer.parseInt(matcher.group(2)));
+            }
+        } catch (RuntimeException e) {
+            return null;
+        }
+        return null;
+    }
+
     public static UDADeviceType valueOf(String s) throws InvalidValueException {
         Matcher matcher = PATTERN.matcher(s);
 

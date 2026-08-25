@@ -35,7 +35,7 @@ public class IntegerDatatype extends AbstractDatatype<Integer> {
 
     @Override
     public Integer valueOf(String s) throws InvalidValueException {
-        if (s.isEmpty()) {
+        if (s == null || s.isEmpty()) {
             return null;
         }
         try {

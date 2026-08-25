@@ -143,29 +143,35 @@ public abstract class UpnpHeader<T> {
      * @param headerValue The value of the header.
      * @return The best matching header subtype instance, or <code>null</code> if no subtype can be found.
      */
-    public static UpnpHeader newInstance(UpnpHeader.Type type, String headerValue) {
-        final Logger logger = LoggerFactory.getLogger(UpnpHeader.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(UpnpHeader.class);
 
+    public static UpnpHeader newInstance(UpnpHeader.Type type, String headerValue) {
         // Try all the UPnP headers and see if one matches our value parsers
         UpnpHeader upnpHeader = null;
         for (int i = 0; i < type.getHeaderTypes().length && upnpHeader == null; i++) {
             Class<? extends UpnpHeader> headerClass = type.getHeaderTypes()[i];
-            try {
-                logger.trace("Trying to parse '{}' with class: {}", type, headerClass.getSimpleName());
-                upnpHeader = headerClass.getDeclaredConstructor().newInstance();
-                if (headerValue != null) {
-                    upnpHeader.setString(headerValue);
-                }
-            } catch (InvalidHeaderException e) {
-                logger.trace("Invalid header value for tested type: {} - {}", headerClass.getSimpleName(),
-                        e.getMessage());
-                upnpHeader = null;
-            } catch (Exception e) {
-                logger.error("Error instantiating header of type '{}' with value: {}", type, headerValue, e);
-            }
-
+            LOGGER.trace("Trying to parse '{}' with class: {}", type, headerClass.getSimpleName());
+            upnpHeader = parseWith(headerClass, type, headerValue);
         }
         return upnpHeader;
+    }
+
+    /** @return the parsed header, or <code>null</code> if this class does not accept the value. */
+    private static UpnpHeader parseWith(Class<? extends UpnpHeader> headerClass, UpnpHeader.Type type,
+            String headerValue) {
+        try {
+            UpnpHeader upnpHeader = headerClass.getDeclaredConstructor().newInstance();
+            if (headerValue != null) {
+                upnpHeader.setString(headerValue);
+            }
+            return upnpHeader;
+        } catch (InvalidHeaderException e) {
+            LOGGER.trace("Invalid header value for tested type: {} - {}", headerClass.getSimpleName(), e.getMessage());
+            return null;
+        } catch (Exception e) {
+            LOGGER.error("Error instantiating header of type '{}' with value: {}", type, headerValue, e);
+            return null;
+        }
     }
 
     @Override

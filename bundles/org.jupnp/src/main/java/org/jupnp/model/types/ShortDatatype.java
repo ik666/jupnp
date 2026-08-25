@@ -28,7 +28,7 @@ public class ShortDatatype extends AbstractDatatype<Short> {
 
     @Override
     public Short valueOf(String s) throws InvalidValueException {
-        if (s.isEmpty()) {
+        if (s == null || s.isEmpty()) {
             return null;
         }
         try {

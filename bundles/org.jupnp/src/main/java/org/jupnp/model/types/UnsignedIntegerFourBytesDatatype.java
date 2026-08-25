@@ -22,7 +22,7 @@ public class UnsignedIntegerFourBytesDatatype extends AbstractDatatype<UnsignedI
 
     @Override
     public UnsignedIntegerFourBytes valueOf(String s) throws InvalidValueException {
-        if (s.isEmpty()) {
+        if (s == null || s.isEmpty()) {
             return null;
         }
         try {

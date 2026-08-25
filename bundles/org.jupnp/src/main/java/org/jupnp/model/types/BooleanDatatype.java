@@ -32,7 +32,7 @@ public class BooleanDatatype extends AbstractDatatype<Boolean> {
 
     @Override
     public Boolean valueOf(String s) throws InvalidValueException {
-        if (s.isEmpty()) {
+        if (s == null || s.isEmpty()) {
             return null;
         }
         if (s.equals("1") || s.toUpperCase(Locale.ENGLISH).equals("YES")

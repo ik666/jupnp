@@ -30,7 +30,7 @@ public class FloatDatatype extends AbstractDatatype<Float> {
 
     @Override
     public Float valueOf(String s) throws InvalidValueException {
-        if (s.isEmpty()) {
+        if (s == null || s.isEmpty()) {
             return null;
         }
         try {
