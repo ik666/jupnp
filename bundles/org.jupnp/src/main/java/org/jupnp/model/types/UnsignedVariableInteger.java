@@ -58,7 +58,33 @@ public abstract class UnsignedVariableInteger {
             SpecificationViolationReporter.report("Invalid negative integer value '" + s + "', assuming value 0!");
             s = "0";
         }
-        setValue(Long.parseLong(s.trim()));
+        String trimmed = s.trim();
+        // Header parsing feeds every candidate value in here, so this constructor sees far more text
+        // than numbers. Rejecting the non-numeric ones up front keeps Long.parseLong out of the
+        // exception business: its throws were deoptimizing the parse path tens of thousands of times
+        // per hour, which is the expensive part - not the value itself.
+        if (!isDigits(trimmed)) {
+            throw new NumberFormatException("Not a number: " + trimmed);
+        }
+        setValue(Long.parseLong(trimmed));
+    }
+
+    /**
+     * @return whether the string is digits, optionally with the leading '+' that {@link Long#parseLong}
+     *         also accepts. Longer than 19 digits is left to parseLong, which knows the exact range.
+     */
+    private static boolean isDigits(String s) {
+        int start = !s.isEmpty() && s.charAt(0) == '+' ? 1 : 0;
+        if (s.length() - start == 0 || s.length() - start > 19) {
+            return false;
+        }
+        for (int i = start; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c < '0' || c > '9') {
+                return false;
+            }
+        }
+        return true;
     }
 
     protected UnsignedVariableInteger setValue(long value) {

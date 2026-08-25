@@ -22,11 +22,17 @@ package org.jupnp.model.message.header;
  */
 public class InvalidHeaderException extends RuntimeException {
 
+    /**
+     * Stackless on purpose: {@link UpnpHeader#newInstance} tries every candidate header class and uses
+     * this exception to reject the ones that do not parse, so it is thrown for nearly every header of
+     * every incoming message - tens of thousands per hour on a quiet network. Only the message is ever
+     * read, never the stack trace, and filling one in dominated the cost of parsing.
+     */
     public InvalidHeaderException(String message) {
-        super(message);
+        super(message, null, false, false);
     }
 
     public InvalidHeaderException(String message, Throwable cause) {
-        super(message, cause);
+        super(message, cause, false, false);
     }
 }

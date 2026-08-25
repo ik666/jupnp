@@ -22,11 +22,16 @@ package org.jupnp.model.types;
  */
 public class InvalidValueException extends RuntimeException {
 
+    /**
+     * Stackless on purpose, for the same reason as InvalidHeaderException: datatype parsing throws this
+     * while headers are probed against every candidate type, and the callers log the message, not the
+     * stack trace.
+     */
     public InvalidValueException(String s) {
-        super(s);
+        super(s, null, false, false);
     }
 
     public InvalidValueException(String s, Throwable throwable) {
-        super(s, throwable);
+        super(s, throwable, false, false);
     }
 }
